@@ -48,6 +48,10 @@ yc compute instance create `
 
 yc compute instance list
 
+yc compute instance stop vm-ubuntu-docker 
+yc compute instance update vm-ubuntu-docker --preemptible=true
+yc compute instance start vm-ubuntu-docker 
+
 ssh -i "$env:USERPROFILE\.ssh\id_ed25519" yc-user@<EXTERNAL_IP>
 docker --version
 docker compose version
