@@ -123,7 +123,7 @@ $token | ssh -i "$env:USERPROFILE\.ssh\id_ed25519" yc-user@<IP-MASTER-01> `
 
 ## Итоговая команда успешного запуска стека
 
-Ключевой флаг здесь - `--with-registry-auth`: он передает registry credentials из manager в Swarm service spec, чтобы worker-ноды могли скачать приватный образ.
+Ключевой флаг `--with-registry-auth` передает registry credentials из manager в Swarm service spec, чтобы worker-ноды могли скачать приватный образ.
 
 Команда на manager node:
 
@@ -131,6 +131,10 @@ $token | ssh -i "$env:USERPROFILE\.ssh\id_ed25519" yc-user@<IP-MASTER-01> `
 cd /opt/virtd-practice-5
 sudo docker stack deploy --with-registry-auth --compose-file compose.yaml python-app
 ```
+
+![работа в браузере](img/img-01.png)
+
+![проверка работы worker-нод](img/img-02.png)
 
 ## Проверка 
 
