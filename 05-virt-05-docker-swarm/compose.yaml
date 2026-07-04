@@ -1,0 +1,74 @@
+services:
+  web:
+    image: cr.yandex/crp593kr8e6uor2mv4jc/shvirtd-example-python:task-2
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+    networks:
+      - backend
+    deploy:
+      replicas: 2
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+
+  db:
+    image: mysql:8
+    env_file:
+      - .env
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  reverse-proxy:
+    image: haproxy:2.4
+    networks:
+      - backend
+    configs:
+      - source: haproxy_cfg
+        target: /usr/local/etc/haproxy/haproxy.cfg
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  ingress-proxy:
+    image: nginx:latest
+    ports:
+      - target: 8090
+        published: 8090
+        protocol: tcp
+        mode: ingress
+    networks:
+      - backend
+    configs:
+      - source: nginx_default_conf
+        target: /etc/nginx/conf.d/default.conf
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+configs:
+  haproxy_cfg:
+    file: ./haproxy/reverse/haproxy.cfg
+  nginx_default_conf:
+    file: ./nginx/ingress/default.conf
+  nginx_conf:
+    file: ./nginx/ingress/nginx.conf
+
+networks:
+  backend:
+    driver: overlay

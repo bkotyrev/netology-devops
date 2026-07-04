@@ -5,7 +5,7 @@ yc config profile list
 yc config profile get <NAME
 yc config profile activate <NAME>
 
-yc vpc network create --name netology-net1 --labels my-label=netology --description "First Network"
+yc vpc network create --name netology-net1 --labels my-label=netology --description "Netology Network"
 yc vpc network list
 
 yc vpc subnet create --name netology-subnet-a --network-name netology-net1 --zone ru-central1-a --range 10.1.2.0/24 --description "Netology Subnet 1"
@@ -42,7 +42,7 @@ yc compute instance create `
   --cores 2 `
   --memory 2GB `
   --core-fraction 20 `
-  --network-interface subnet-id=e9b6jt8bg9122u169c0f,nat-ip-version=ipv4 `
+  --network-interface subnet-id=e9b8ltejajtcttvs9048,nat-ip-version=ipv4 `
   --create-boot-disk name=boot-ubuntu-docker-01,type=network-hdd,size=20GB,image-name=ubuntu-24-docker,auto-delete=true `
   --ssh-key $env:USERPROFILE\.ssh\id_ed25519.pub
 

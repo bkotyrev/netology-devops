@@ -10,6 +10,8 @@ services:
       dockerfile: Dockerfile.python
     container_name: virtd-practice-5-web
     restart: always
+    ports:
+      - "5000:5000"
     environment:
       DB_HOST: db
       DB_USER: ${MYSQL_USER}
