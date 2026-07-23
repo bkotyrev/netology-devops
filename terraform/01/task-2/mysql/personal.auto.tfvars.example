@@ -1,0 +1,1 @@
+docker_host = "ssh://<ssh_user>@<vm_external_ip>"

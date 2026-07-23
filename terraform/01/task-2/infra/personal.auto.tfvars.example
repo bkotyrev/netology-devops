@@ -1,0 +1,26 @@
+cloud_id  = "<cloud_id>"
+folder_id = "<folder_id>"
+subnet_id = "<subnet_id>"
+
+vm_name                    = "hw1-task2"
+vm_hostname                = "hw1-task2"
+vm_platform_id             = "standard-v3"
+vm_image_id                = "<ubuntu_image_id>"
+vm_boot_disk_name          = "disk-hw1-task2"
+vm_boot_disk_type          = "network-hdd"
+vm_boot_disk_size          = 20
+vm_boot_disk_block_size    = 4096
+vm_boot_disk_auto_delete   = true
+vm_network_interface_index = 0
+vm_nat                     = true
+
+vm_resources = {
+  memory        = 2
+  cores         = 2
+  core_fraction = 20
+}
+
+vm_preemptible     = true
+vm_username        = "<ssh_user>"
+vm_ssh_public_key  = "<ssh_public_key>"
+vm_metadata_source = "terraform"

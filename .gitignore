@@ -51,3 +51,27 @@ Thumbs.db
 .vagrant/
 
 __pycache__/
+
+# Terraform local state, credentials, and generated files
+**/.terraform/
+**/.terraform.d/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+crash.log
+crash.*.log
+*.tfplan
+*.tfout
+plan.out
+.terraform.tfstate.lock.info
+.authorized_key.json
+authorized_key.json
+*.pem
+*.key
+.env
+.env.*
