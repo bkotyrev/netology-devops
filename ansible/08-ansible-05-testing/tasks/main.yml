@@ -1,0 +1,73 @@
+---
+- name: Проверить поддержку семейства операционной системы
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family in ["Debian", "RedHat"]
+    fail_msg: "Роль поддерживает только семейства Debian и RedHat"
+    quiet: true
+  tags:
+    - vector
+
+- name: Скачать пакет Vector для Debian
+  ansible.builtin.get_url:
+    url: "{{ vector_deb_url }}"
+    dest: "{{ vector_deb_path }}"
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+  tags:
+    - vector
+
+- name: Установить пакет Vector для Debian
+  ansible.builtin.apt:
+    deb: "{{ vector_deb_path }}"
+    state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - vector
+
+- name: Скачать пакет Vector для RedHat
+  ansible.builtin.get_url:
+    url: "{{ vector_rpm_url }}"
+    dest: "{{ vector_rpm_path }}"
+    mode: "0644"
+  when: ansible_os_family == "RedHat"
+  tags:
+    - vector
+
+- name: Установить пакет Vector для RedHat
+  ansible.builtin.dnf:
+    name: "{{ vector_rpm_path }}"
+    state: present
+    disable_gpg_check: true
+  when: ansible_os_family == "RedHat"
+  tags:
+    - vector
+
+- name: Создать каталог данных Vector
+  ansible.builtin.file:
+    path: "{{ vector_data_dir }}"
+    state: directory
+    owner: vector
+    group: vector
+    mode: "0755"
+  tags:
+    - vector
+
+- name: Настроить Vector
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: "{{ vector_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Перезапустить Vector
+  tags:
+    - vector
+
+- name: Включить и запустить Vector
+  ansible.builtin.service:
+    name: vector
+    enabled: true
+    state: started
+  tags:
+    - vector

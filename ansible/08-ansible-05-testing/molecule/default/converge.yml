@@ -1,0 +1,9 @@
+---
+- name: Применить роль Vector
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Подключить роль Vector
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"

@@ -1,0 +1,66 @@
+---
+- name: Проверить результат работы роли Vector
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Собрать сведения об установленных пакетах
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Проверить установку пакета Vector
+      ansible.builtin.assert:
+        that:
+          - "'vector' in ansible_facts.packages"
+        fail_msg: "Пакет Vector не установлен"
+        success_msg: "Пакет Vector установлен"
+
+    - name: Получить сведения о конфигурации Vector
+      ansible.builtin.stat:
+        path: /etc/vector/vector.yaml
+      register: vector_config
+
+    - name: Проверить наличие конфигурации Vector
+      ansible.builtin.assert:
+        that:
+          - vector_config.stat.exists
+          - vector_config.stat.isreg
+        fail_msg: "Файл конфигурации Vector не найден"
+        success_msg: "Файл конфигурации Vector создан"
+
+    - name: Проверить валидность конфигурации Vector
+      ansible.builtin.command:
+        cmd: vector validate /etc/vector/vector.yaml
+      register: vector_validate
+      changed_when: false
+
+    - name: Проверить успешную валидацию конфигурации
+      ansible.builtin.assert:
+        that:
+          - vector_validate.rc == 0
+        fail_msg: "Конфигурация Vector не прошла валидацию"
+        success_msg: "Конфигурация Vector валидна"
+
+    - name: Получить версию Vector
+      ansible.builtin.command:
+        cmd: vector --version
+      register: vector_version_result
+      changed_when: false
+
+    - name: Проверить версию Vector
+      ansible.builtin.assert:
+        that:
+          - "'0.54.0' in vector_version_result.stdout"
+        fail_msg: "Установлена неверная версия Vector"
+        success_msg: "Версия Vector соответствует ожидаемой"
+
+    - name: Собрать сведения о сервисах
+      ansible.builtin.service_facts:
+
+    - name: Проверить запуск сервиса Vector
+      ansible.builtin.assert:
+        that:
+          - "'vector.service' in ansible_facts.services"
+          - "ansible_facts.services['vector.service'].state == 'running'"
+        fail_msg: "Сервис Vector не запущен"
+        success_msg: "Сервис Vector запущен"

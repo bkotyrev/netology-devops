@@ -1,0 +1,5 @@
+---
+- name: Перезапустить Vector
+  ansible.builtin.service:
+    name: vector
+    state: restarted
