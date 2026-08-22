@@ -1,0 +1,27 @@
+---
+- name: Настройка ClickHouse
+  hosts: clickhouse
+  become: true
+  roles:
+    - role: clickhouse
+      when: not ansible_check_mode
+      tags:
+        - clickhouse
+- name: Настройка Vector
+  hosts: vector
+  become: true
+  roles:
+    - role: vector
+      when: not ansible_check_mode
+      tags:
+        - vector
+- name: Настройка LightHouse
+  hosts: lighthouse
+  become: true
+  roles:
+    - role: lighthouse
+      when: not ansible_check_mode
+      tags:
+        - lighthouse
+        - nginx
+

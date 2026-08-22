@@ -1,0 +1,9 @@
+.venv/
+.ansible/
+*.retry
+*.log
+vault*.yml
+*.key
+*.pem
+id_rsa*
+
