@@ -43,7 +43,7 @@ molecule list
 ANSIBLE_COLLECTIONS_SCAN_SYS_PATH=false molecule test -s default 
 ```
 ### Результат работы Molecule
-[logs/molecule-default.log](logs/molecule-default.log)
+[output/molecule-default.txt](output/molecule-default.txt)
 
 ## Запуск Tox
 
@@ -61,7 +61,7 @@ tox -r -e py39-ansible210
 tox -r
 ```
 ### Результат работы Tox
-[logs/tox-podman.log](logs/tox-podman.log)
+[output/tox-podman.txt](output/tox-podman.txt)
 
 
 

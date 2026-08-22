@@ -1,0 +1,366 @@
+INFO     default ➜ discovery: scenario test matrix: destroy, syntax, create, converge, idempotence, verify, destroy
+INFO     default ➜ prerun: Performing prerun with role_name_check=0...
+INFO     default ➜ destroy: Executing
+INFO     Sanity checks: 'docker'
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/.venv/lib/python
+  │   3.12/site-packages/molecule_plugins/docker/playbooks/destroy.yml
+  │ 
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ 
+  │ PLAY [Destroy] *****************************************************************
+  │ 
+  │ TASK [Set async_dir for HOME env] **********************************************
+  │ ok: [localhost]
+  │ 
+  │ TASK [Destroy molecule instance(s)] ********************************************
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Wait for instance(s) deletion to complete] *******************************
+  │ ok: [localhost] => (item=ubuntu-latest)
+  │ ok: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Delete docker networks(s)] ***********************************************
+  │ skipping: [localhost]
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ localhost                  : ok=3    changed=1    unreachable=0    failed=0    skipped=1    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ destroy: Executed: Successful
+INFO     default ➜ syntax: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ --syntax-check
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/molecule/default
+  │   /converge.yml
+  │ 
+  │ 
+  │ playbook:
+  │   /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/molecule/defau
+  │   lt/converge.yml
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ syntax: Executed: Successful
+INFO     default ➜ create: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/.venv/lib/python
+  │   3.12/site-packages/molecule_plugins/docker/playbooks/create.yml
+  │ 
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ 
+  │ PLAY [Create] ******************************************************************
+  │ 
+  │ TASK [Set async_dir for HOME env] **********************************************
+  │ ok: [localhost]
+  │ 
+  │ TASK [Log into a Docker registry] **********************************************
+  │ skipping: [localhost] => (item=None) 
+  │ skipping: [localhost] => (item=None) 
+  │ skipping: [localhost]
+  │ 
+  │ TASK [Check presence of custom Dockerfiles] ************************************
+  │ ok: [localhost] => (item=ubuntu-latest)
+  │ ok: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Create Dockerfiles from image names] *************************************
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Synchronization the context] *********************************************
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ ok: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Discover local Docker images] ********************************************
+  │ ok: [localhost] => (item=unix://var/run/docker.sock)
+  │ ok: [localhost] => (item=unix://var/run/docker.sock)
+  │ 
+  │ TASK [Create docker network(s)] ************************************************
+  │ skipping: [localhost]
+  │ 
+  │ TASK [Build an Ansible compatible image (new)] *********************************
+  │ ok: [localhost] => (item=molecule_local/docker.io/library/ubuntu:latest)
+  │ ok: [localhost] => (item=molecule_local/docker.io/library/oraclelinux:8)
+  │ 
+  │ TASK [Determine the CMD directives] ********************************************
+  │ ok: [localhost] => (item=ubuntu-latest)
+  │ ok: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Create molecule instance(s)] *********************************************
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Wait for instance(s) creation to complete] *******************************
+  │ FAILED - RETRYING: [localhost]: Wait for instance(s) creation to complete (300 retries left).
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ localhost                  : ok=9    changed=4    unreachable=0    failed=0    skipped=2    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ create: Executed: Successful
+INFO     default ➜ converge: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/molecule/default
+  │   /converge.yml
+  │ 
+  │ 
+  │ PLAY [Применить роль Vector] ***************************************************
+  │ 
+  │ TASK [Gathering Facts] *********************************************************
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ ok: [ubuntu-latest]
+  │ ok: [oraclelinux-8]
+  │ 
+  │ TASK [Подключить роль Vector] **************************************************
+  │ 
+  │ TASK [08-ansible-05-testing : Проверить поддержку семейства операционной системы] ***
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Скачать пакет Vector для Debian] *****************
+  │ skipping: [oraclelinux-8]
+  │ changed: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Установить пакет Vector для Debian] **************
+  │ skipping: [oraclelinux-8]
+  │ changed: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Скачать пакет Vector для RedHat] *****************
+  │ skipping: [ubuntu-latest]
+  │ changed: [oraclelinux-8]
+  │ 
+  │ TASK [08-ansible-05-testing : Установить пакет Vector для RedHat] **************
+  │ skipping: [ubuntu-latest]
+  │ changed: [oraclelinux-8]
+  │ 
+  │ TASK [08-ansible-05-testing : Создать каталог данных Vector] *******************
+  │ changed: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Настроить Vector] ********************************
+  │ changed: [ubuntu-latest]
+  │ changed: [oraclelinux-8]
+  │ 
+  │ TASK [08-ansible-05-testing : Включить и запустить Vector] *********************
+  │ changed: [oraclelinux-8]
+  │ changed: [ubuntu-latest]
+  │ 
+  │ RUNNING HANDLER [08-ansible-05-testing : Перезапустить Vector] *****************
+  │ changed: [oraclelinux-8]
+  │ changed: [ubuntu-latest]
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ oraclelinux-8              : ok=8    changed=6    unreachable=0    failed=0    skipped=2    rescued=0
+  │   ignored=0
+  │ ubuntu-latest              : ok=8    changed=5    unreachable=0    failed=0    skipped=2    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ converge: Executed: Successful
+INFO     default ➜ idempotence: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest,molecule-idempotence-notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/molecule/default
+  │   /converge.yml
+  │ 
+  │ 
+  │ PLAY [Применить роль Vector] ***************************************************
+  │ 
+  │ TASK [Gathering Facts] *********************************************************
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ ok: [ubuntu-latest]
+  │ ok: [oraclelinux-8]
+  │ 
+  │ TASK [Подключить роль Vector] **************************************************
+  │ 
+  │ TASK [08-ansible-05-testing : Проверить поддержку семейства операционной системы] ***
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Скачать пакет Vector для Debian] *****************
+  │ skipping: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Установить пакет Vector для Debian] **************
+  │ skipping: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Скачать пакет Vector для RedHat] *****************
+  │ skipping: [ubuntu-latest]
+  │ ok: [oraclelinux-8]
+  │ 
+  │ TASK [08-ansible-05-testing : Установить пакет Vector для RedHat] **************
+  │ skipping: [ubuntu-latest]
+  │ ok: [oraclelinux-8]
+  │ 
+  │ TASK [08-ansible-05-testing : Создать каталог данных Vector] *******************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Настроить Vector] ********************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [08-ansible-05-testing : Включить и запустить Vector] *********************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ oraclelinux-8              : ok=7    changed=0    unreachable=0    failed=0    skipped=2    rescued=0
+  │   ignored=0
+  │ ubuntu-latest              : ok=7    changed=0    unreachable=0    failed=0    skipped=2    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ idempotence: Executed: Successful
+INFO     default ➜ verify: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/molecule/default
+  │   /verify.yml
+  │ 
+  │ 
+  │ PLAY [Проверить результат работы роли Vector] **********************************
+  │ 
+  │ TASK [Gathering Facts] *********************************************************
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ ok: [ubuntu-latest]
+  │ ok: [oraclelinux-8]
+  │ 
+  │ TASK [Собрать сведения об установленных пакетах] *******************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [Проверить установку пакета Vector] ***************************************
+  │ ok: [oraclelinux-8] => {
+  │     "changed": false,
+  │     "msg": "Пакет Vector установлен"
+  │ }
+  │ ok: [ubuntu-latest] => {
+  │     "changed": false,
+  │     "msg": "Пакет Vector установлен"
+  │ }
+  │ 
+  │ TASK [Получить сведения о конфигурации Vector] *********************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [Проверить наличие конфигурации Vector] ***********************************
+  │ ok: [oraclelinux-8] => {
+  │     "changed": false,
+  │     "msg": "Файл конфигурации Vector создан"
+  │ }
+  │ ok: [ubuntu-latest] => {
+  │     "changed": false,
+  │     "msg": "Файл конфигурации Vector создан"
+  │ }
+  │ 
+  │ TASK [Проверить валидность конфигурации Vector] ********************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [Проверить успешную валидацию конфигурации] *******************************
+  │ ok: [oraclelinux-8] => {
+  │     "changed": false,
+  │     "msg": "Конфигурация Vector валидна"
+  │ }
+  │ ok: [ubuntu-latest] => {
+  │     "changed": false,
+  │     "msg": "Конфигурация Vector валидна"
+  │ }
+  │ 
+  │ TASK [Получить версию Vector] **************************************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [Проверить версию Vector] *************************************************
+  │ ok: [oraclelinux-8] => {
+  │     "changed": false,
+  │     "msg": "Версия Vector соответствует ожидаемой"
+  │ }
+  │ ok: [ubuntu-latest] => {
+  │     "changed": false,
+  │     "msg": "Версия Vector соответствует ожидаемой"
+  │ }
+  │ 
+  │ TASK [Собрать сведения о сервисах] *********************************************
+  │ ok: [oraclelinux-8]
+  │ ok: [ubuntu-latest]
+  │ 
+  │ TASK [Проверить запуск сервиса Vector] *****************************************
+  │ ok: [oraclelinux-8] => {
+  │     "changed": false,
+  │     "msg": "Сервис Vector запущен"
+  │ }
+  │ ok: [ubuntu-latest] => {
+  │     "changed": false,
+  │     "msg": "Сервис Vector запущен"
+  │ }
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ oraclelinux-8              : ok=11   changed=0    unreachable=0    failed=0    skipped=0    rescued=0
+  │   ignored=0
+  │ ubuntu-latest              : ok=11   changed=0    unreachable=0    failed=0    skipped=0    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ verify: Executed: Successful
+INFO     default ➜ destroy: Executing
+  ┌──────────────────────────────────────────────────────────────────────────────────
+  │ ansible-playbook --inventory /home/kbe/.ansible/tmp/molecule.eDJU.default/inventory
+  │   --skip-tags molecule-notest,notest
+  │ /mnt/c/Users/b.kotyrev/Desktop/Learning/netology-devops/ansible/08-ansible-05-testing/.venv/lib/python
+  │   3.12/site-packages/molecule_plugins/docker/playbooks/destroy.yml
+  │ 
+  │ [WARNING]: Collection community.docker does not support Ansible version 2.16.3
+  │ 
+  │ PLAY [Destroy] *****************************************************************
+  │ 
+  │ TASK [Set async_dir for HOME env] **********************************************
+  │ ok: [localhost]
+  │ 
+  │ TASK [Destroy molecule instance(s)] ********************************************
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Wait for instance(s) deletion to complete] *******************************
+  │ FAILED - RETRYING: [localhost]: Wait for instance(s) deletion to complete (300 retries left).
+  │ changed: [localhost] => (item=ubuntu-latest)
+  │ changed: [localhost] => (item=oraclelinux-8)
+  │ 
+  │ TASK [Delete docker networks(s)] ***********************************************
+  │ skipping: [localhost]
+  │ 
+  │ PLAY RECAP *********************************************************************
+  │ localhost                  : ok=3    changed=2    unreachable=0    failed=0    skipped=1    rescued=0
+  │   ignored=0
+  │ 
+  └─ Return code: 0 ─────────────────────────────────────────────────────────────────
+INFO     default ➜ destroy: Executed: Successful
+INFO     default ➜ scenario: Pruning extra files from scenario ephemeral directory
+INFO     Molecule executed 1 scenario (1 successful)
+
+DETAILS                                                                        
+default ➜ destroy: Executed: Successful
+default ➜ syntax: Executed: Successful
+default ➜ create: Executed: Successful
+default ➜ converge: Executed: Successful
+default ➜ idempotence: Executed: Successful
+default ➜ verify: Executed: Successful
+default ➜ destroy: Executed: Successful
+
+SCENARIO RECAP                                                                 
+default                   : actions=7  successful=7  disabled=0  skipped=0  missing=0  failed=0
