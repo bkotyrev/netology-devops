@@ -1,0 +1,16 @@
+--- a/module_utils/yc.py
++++ b/module_utils/yc.py
+@@ -36,4 +36,12 @@
+         interceptor = RetryInterceptor(max_retry_count=10)
+         if self.params["auth"]["root_certificates"]:
+             self.params["auth"]["root_certificates"] = self.params["auth"]["root_certificates"].encode("utf-8")
+-        self.sdk = SDK(interceptor=interceptor, **self.params["auth"])
++        # The upstream module calls this value an OAuth token. New OAuth tokens
++        # are no longer issued by Yandex Cloud, so use the current IAM-token
++        # authentication path of the Python SDK instead.
++        auth = self.params["auth"].copy()
++        if auth["token"]:
++            auth["iam_token"] = auth.pop("token")
++        else:
++            auth.pop("token")
++        self.sdk = SDK(interceptor=interceptor, **auth)

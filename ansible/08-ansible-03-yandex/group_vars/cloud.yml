@@ -1,0 +1,29 @@
+---
+# Non-secret defaults for provisioning. Override them with -e when necessary.
+yc_folder_id: ""
+yc_zone: ru-central1-a
+yc_network_name: netology-ansible-network
+yc_subnet_name: netology-ansible-subnet-a
+yc_subnet_range: 10.128.0.0/24
+yc_security_group_name: netology-ansible-sg
+yc_image_family: ubuntu-2404-lts
+yc_image_folder_id: standard-images
+yc_ssh_user: yc-user
+yc_ssh_public_key_path: "{{ lookup('env', 'HOME') }}/.ssh/netology_yc.pub"
+yc_ssh_private_key_path: "{{ lookup('env', 'HOME') }}/.ssh/netology_yc"
+# Leave empty to discover the controller public address during provisioning.
+yc_admin_cidr: ""
+
+yc_instances:
+  - name: netology-clickhouse
+    group: clickhouse
+  - name: netology-vector
+    group: vector
+  - name: netology-lighthouse
+    group: lighthouse
+
+yc_instance_cores: 2
+yc_instance_memory_gb: 2
+yc_instance_disk_gb: 10
+yc_instance_core_fraction: 20
+yc_instance_preemptible: true

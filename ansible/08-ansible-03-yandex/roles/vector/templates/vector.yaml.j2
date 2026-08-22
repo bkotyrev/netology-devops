@@ -1,0 +1,15 @@
+data_dir: /var/lib/vector
+
+sources:
+  demo:
+    type: demo_logs
+    format: syslog
+    interval: 1
+
+sinks:
+  console:
+    type: console
+    inputs:
+      - demo
+    encoding:
+      codec: json

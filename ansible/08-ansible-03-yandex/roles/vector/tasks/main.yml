@@ -1,0 +1,35 @@
+---
+- name: Download Vector package
+  ansible.builtin.get_url:
+    url: "{{ vector_deb_url }}"
+    dest: "{{ vector_deb_path }}"
+    mode: '0644'
+  tags:
+    - vector
+
+- name: Install Vector package
+  ansible.builtin.apt:
+    deb: "{{ vector_deb_path }}"
+    state: present
+  tags:
+    - vector
+
+- name: Configure Vector
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: /etc/vector/vector.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Vector
+  tags:
+    - vector
+
+- name: Enable and start Vector
+  ansible.builtin.service:
+    name: vector
+    enabled: true
+    state: started
+  tags:
+    - vector
+  when: not ansible_check_mode

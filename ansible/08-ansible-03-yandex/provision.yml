@@ -1,0 +1,359 @@
+---
+- name: Provision Yandex Cloud environment
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - group_vars/cloud.yml
+  vars:
+    yc_iam_token: "{{ lookup('ansible.builtin.env', 'YC_IAM_TOKEN') }}"
+  tasks:
+    - name: Read active folder from yc profile
+      ansible.builtin.command:
+        argv:
+          - yc
+          - config
+          - get
+          - folder-id
+      register: yc_config_folder
+      changed_when: false
+
+    - name: Resolve provisioning inputs
+      ansible.builtin.set_fact:
+        yc_effective_folder_id: "{{ yc_folder_id | default(yc_config_folder.stdout | trim, true) }}"
+      changed_when: false
+
+    - name: Check required local credentials and dependencies
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ yc_ssh_public_key_path }}"
+        - plugins/modules/ycc_vm.py
+      register: required_local_files
+      changed_when: false
+
+    - name: Validate provisioning prerequisites
+      ansible.builtin.assert:
+        that:
+          - yc_iam_token | length > 0
+          - yc_effective_folder_id | length > 0
+          - required_local_files.results[0].stat.exists
+          - required_local_files.results[1].stat.exists
+        fail_msg: >-
+          Run bootstrap-wsl.sh, yc init, export YC_IAM_TOKEN="$(yc iam create-token)",
+          and create the SSH key before provisioning.
+
+    - name: Discover controller public IPv4 address
+      ansible.builtin.uri:
+        url: https://api.ipify.org
+        return_content: true
+      register: yc_public_address
+      when: yc_admin_cidr | length == 0
+      changed_when: false
+
+    - name: Resolve controller CIDR
+      ansible.builtin.set_fact:
+        yc_controller_cidr: >-
+          {{ yc_admin_cidr if yc_admin_cidr | length > 0 else
+             (yc_public_address.content | trim ~ '/32') }}
+      changed_when: false
+
+    - name: Look up dedicated VPC network
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - network
+          - get
+          - "{{ yc_network_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_network_get
+      changed_when: false
+      failed_when: false
+
+    - name: Create dedicated VPC network
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - network
+          - create
+          - --name
+          - "{{ yc_network_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --labels
+          - homework=08-ansible-03-yandex
+      when: yc_network_get.rc != 0
+      changed_when: true
+
+    - name: Read dedicated VPC network after reconciliation
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - network
+          - get
+          - "{{ yc_network_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_network
+      changed_when: false
+
+    - name: Set dedicated VPC network ID
+      ansible.builtin.set_fact:
+        yc_network_id: "{{ (yc_network.stdout | from_json).id }}"
+      changed_when: false
+
+    - name: Look up dedicated subnet
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - subnet
+          - get
+          - "{{ yc_subnet_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_subnet_get
+      changed_when: false
+      failed_when: false
+
+    - name: Create dedicated subnet
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - subnet
+          - create
+          - --name
+          - "{{ yc_subnet_name }}"
+          - --network-id
+          - "{{ yc_network_id }}"
+          - --zone
+          - "{{ yc_zone }}"
+          - --range
+          - "{{ yc_subnet_range }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+      when: yc_subnet_get.rc != 0
+      changed_when: true
+
+    - name: Read dedicated subnet after reconciliation
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - subnet
+          - get
+          - "{{ yc_subnet_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_subnet
+      changed_when: false
+
+    - name: Set dedicated subnet ID
+      ansible.builtin.set_fact:
+        yc_subnet_id: "{{ (yc_subnet.stdout | from_json).id }}"
+      changed_when: false
+
+    - name: Look up security group
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - security-group
+          - get
+          - "{{ yc_security_group_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_security_group_get
+      changed_when: false
+      failed_when: false
+
+    - name: Read security group rule descriptions
+      ansible.builtin.set_fact:
+        yc_security_group_rule_descriptions: >-
+          {{ ((yc_security_group_get.stdout | from_json).rules | default([]))
+             | map(attribute='description') | list | sort }}
+      when: yc_security_group_get.rc == 0
+      changed_when: false
+
+    - name: Decide whether security group rules need reconciliation
+      ansible.builtin.set_fact:
+        yc_security_group_needs_update: >-
+          {{ yc_security_group_get.rc != 0 or
+             (yc_security_group_rule_descriptions | default([])) !=
+             (['egress-all', 'ssh-from-controller', 'clickhouse-http-from-controller', 'lighthouse-http'] | sort) }}
+      changed_when: false
+
+    - name: Create security group with required rules
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - security-group
+          - create
+          - --name
+          - "{{ yc_security_group_name }}"
+          - --network-id
+          - "{{ yc_network_id }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --rule
+          - "description=egress-all,direction=egress,port=any,protocol=any,v4-cidrs=[0.0.0.0/0]"
+          - --rule
+          - "description=ssh-from-controller,direction=ingress,port=22,protocol=tcp,v4-cidrs=[{{ yc_controller_cidr }}]"
+          - --rule
+          - "description=clickhouse-http-from-controller,direction=ingress,port=8123,protocol=tcp,v4-cidrs=[{{ yc_controller_cidr }}]"
+          - --rule
+          - "description=lighthouse-http,direction=ingress,port=80,protocol=tcp,v4-cidrs=[0.0.0.0/0]"
+      when: yc_security_group_get.rc != 0
+      changed_when: true
+
+    - name: Reconcile existing security group rules
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - security-group
+          - update
+          - "{{ yc_security_group_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --clear-rules
+          - --rule
+          - "description=egress-all,direction=egress,port=any,protocol=any,v4-cidrs=[0.0.0.0/0]"
+          - --rule
+          - "description=ssh-from-controller,direction=ingress,port=22,protocol=tcp,v4-cidrs=[{{ yc_controller_cidr }}]"
+          - --rule
+          - "description=clickhouse-http-from-controller,direction=ingress,port=8123,protocol=tcp,v4-cidrs=[{{ yc_controller_cidr }}]"
+          - --rule
+          - "description=lighthouse-http,direction=ingress,port=80,protocol=tcp,v4-cidrs=[0.0.0.0/0]"
+      when:
+        - yc_security_group_get.rc == 0
+        - yc_security_group_needs_update
+      changed_when: true
+
+    - name: Read security group after reconciliation
+      ansible.builtin.command:
+        argv:
+          - yc
+          - vpc
+          - security-group
+          - get
+          - "{{ yc_security_group_name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_security_group
+      changed_when: false
+
+    - name: Set security group ID
+      ansible.builtin.set_fact:
+        yc_security_group_id: "{{ (yc_security_group.stdout | from_json).id }}"
+      changed_when: false
+
+    - name: Resolve current Ubuntu image ID
+      ansible.builtin.command:
+        argv:
+          - yc
+          - compute
+          - image
+          - get-latest-from-family
+          - "{{ yc_image_family }}"
+          - --folder-id
+          - "{{ yc_image_folder_id }}"
+          - --format
+          - json
+      register: yc_image
+      changed_when: false
+
+    - name: Set current Ubuntu image ID
+      ansible.builtin.set_fact:
+        yc_image_id: "{{ (yc_image.stdout | from_json).id }}"
+      changed_when: false
+
+    - name: Create or reconcile application VMs
+      ycc_vm:
+        auth:
+          token: "{{ yc_iam_token }}"
+        name: "{{ item.name }}"
+        folder_id: "{{ yc_effective_folder_id }}"
+        zone_id: "{{ yc_zone }}"
+        platform_id: Intel Cascade Lake
+        cores: "{{ yc_instance_cores }}"
+        memory: "{{ yc_instance_memory_gb }}"
+        core_fraction: "{{ yc_instance_core_fraction }}"
+        disk_type: hdd
+        disk_size: "{{ yc_instance_disk_gb }}"
+        image_id: "{{ yc_image_id }}"
+        subnet_id: "{{ yc_subnet_id }}"
+        security_groups:
+          - "{{ yc_security_group_id }}"
+        assign_public_ip: true
+        preemptible: "{{ yc_instance_preemptible }}"
+        login: "{{ yc_ssh_user }}"
+        public_ssh_key: "{{ lookup('ansible.builtin.file', yc_ssh_public_key_path) | trim }}"
+        labels:
+          homework: 08-ansible-03-yandex
+        state: present
+      loop: "{{ yc_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Read VM connection details
+      ansible.builtin.command:
+        argv:
+          - yc
+          - compute
+          - instance
+          - get
+          - "{{ item.name }}"
+          - --folder-id
+          - "{{ yc_effective_folder_id }}"
+          - --format
+          - json
+      register: yc_instance_info
+      changed_when: false
+      loop: "{{ yc_instances }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Build VM details map
+      ansible.builtin.set_fact:
+        yc_instances_by_name: >-
+          {{ yc_instances_by_name | default({}) |
+             combine({item.item.name: (item.stdout | from_json)}) }}
+      loop: "{{ yc_instance_info.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+      changed_when: false
+
+    - name: Generate production inventory
+      ansible.builtin.template:
+        src: inventory/prod.yml.j2
+        dest: inventory/prod.yml
+        mode: '0644'
+
+    - name: Wait for SSH on each application VM
+      ansible.builtin.wait_for:
+        host: "{{ yc_instances_by_name[item.name].network_interfaces[0].primary_v4_address.one_to_one_nat.address }}"
+        port: 22
+        timeout: 300
+        sleep: 5
+      loop: "{{ yc_instances }}"
+      loop_control:
+        label: "{{ item.name }}"

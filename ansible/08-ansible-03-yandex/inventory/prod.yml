@@ -1,0 +1,19 @@
+---
+all:
+  vars:
+    ansible_user: yc-user
+    ansible_ssh_private_key_file: /home/kbe/.ssh/netology_yc
+    ansible_python_interpreter: /usr/bin/python3
+  children:
+    clickhouse:
+      hosts:
+        netology-clickhouse:
+          ansible_host: 93.77.188.81
+    vector:
+      hosts:
+        netology-vector:
+          ansible_host: 51.250.64.15
+    lighthouse:
+      hosts:
+        netology-lighthouse:
+          ansible_host: 89.169.134.142

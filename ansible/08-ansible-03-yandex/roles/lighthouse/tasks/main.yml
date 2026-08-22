@@ -1,0 +1,82 @@
+---
+- name: Install LightHouse web server dependencies
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - tar
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - lighthouse
+    - nginx
+
+- name: Create LightHouse document root
+  ansible.builtin.file:
+    path: "{{ lighthouse_document_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - lighthouse
+
+- name: Download LightHouse static archive
+  ansible.builtin.get_url:
+    url: "{{ lighthouse_archive_url }}"
+    dest: "{{ lighthouse_archive_path }}"
+    mode: '0644'
+  tags:
+    - lighthouse
+
+- name: Extract LightHouse static files
+  ansible.builtin.unarchive:
+    src: "{{ lighthouse_archive_path }}"
+    dest: "{{ lighthouse_document_root }}"
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ lighthouse_document_root }}/index.html"
+  tags:
+    - lighthouse
+
+- name: Configure Nginx for LightHouse
+  ansible.builtin.template:
+    src: lighthouse.conf.j2
+    dest: "{{ lighthouse_nginx_site_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload nginx
+  tags:
+    - lighthouse
+    - nginx
+
+- name: Enable LightHouse Nginx site
+  ansible.builtin.file:
+    src: "{{ lighthouse_nginx_site_path }}"
+    dest: /etc/nginx/sites-enabled/lighthouse
+    state: link
+  notify: Reload nginx
+  tags:
+    - lighthouse
+    - nginx
+
+- name: Disable default Nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+  tags:
+    - lighthouse
+    - nginx
+
+- name: Enable and start Nginx
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started
+  tags:
+    - lighthouse
+    - nginx
+  when: not ansible_check_mode

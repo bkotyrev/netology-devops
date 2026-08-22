@@ -1,0 +1,31 @@
+---
+- name: Install ClickHouse packages
+  ansible.builtin.apt:
+    name:
+      - clickhouse-server
+      - clickhouse-client
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - clickhouse
+
+- name: Allow ClickHouse HTTP connections from LightHouse clients
+  ansible.builtin.template:
+    src: listen.xml.j2
+    dest: /etc/clickhouse-server/config.d/listen.xml
+    owner: root
+    group: clickhouse
+    mode: '0640'
+  notify: Restart ClickHouse
+  tags:
+    - clickhouse
+
+- name: Enable and start ClickHouse
+  ansible.builtin.service:
+    name: clickhouse-server
+    enabled: true
+    state: started
+  tags:
+    - clickhouse
+  when: not ansible_check_mode

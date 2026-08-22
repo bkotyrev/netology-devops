@@ -1,0 +1,4 @@
+---
+vector_version: 0.55.0
+vector_deb_url: "https://github.com/vectordotdev/vector/releases/download/v{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb"
+vector_deb_path: "/tmp/vector_{{ vector_version }}_amd64.deb"

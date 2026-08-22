@@ -1,0 +1,19 @@
+---
+all:
+  vars:
+    ansible_user: {{ yc_ssh_user }}
+    ansible_ssh_private_key_file: {{ yc_ssh_private_key_path }}
+    ansible_python_interpreter: /usr/bin/python3
+  children:
+    clickhouse:
+      hosts:
+        {{ yc_instances_by_name['netology-clickhouse'].name }}:
+          ansible_host: {{ yc_instances_by_name['netology-clickhouse'].network_interfaces[0].primary_v4_address.one_to_one_nat.address }}
+    vector:
+      hosts:
+        {{ yc_instances_by_name['netology-vector'].name }}:
+          ansible_host: {{ yc_instances_by_name['netology-vector'].network_interfaces[0].primary_v4_address.one_to_one_nat.address }}
+    lighthouse:
+      hosts:
+        {{ yc_instances_by_name['netology-lighthouse'].name }}:
+          ansible_host: {{ yc_instances_by_name['netology-lighthouse'].network_interfaces[0].primary_v4_address.one_to_one_nat.address }}
