@@ -1,0 +1,47 @@
+groups:
+  - name: zfs-alerts
+    rules:
+      - alert: ZFSPoolNotOnline
+        expr: node_zfs_zpool_state{state="online"} != 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ZFS pool не ONLINE на {{ $labels.instance }}"
+          description: "Pool {{ $labels.zpool }} находится не в состоянии ONLINE."
+
+      - alert: ZFSPoolReadErrors
+        expr: increase(node_zfs_zpool_read_errors[10m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ZFS read errors на {{ $labels.instance }}"
+          description: "Pool {{ $labels.zpool }} получил READ errors за последние 10 минут."
+
+      - alert: ZFSPoolWriteErrors
+        expr: increase(node_zfs_zpool_write_errors[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ZFS write errors на {{ $labels.instance }}"
+          description: "Pool {{ $labels.zpool }} получил WRITE errors за последние 10 минут."
+
+      - alert: ZFSPoolChecksumErrors
+        expr: increase(node_zfs_zpool_checksum_errors[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ZFS checksum errors на {{ $labels.instance }}"
+          description: "Pool {{ $labels.zpool }} получил CKSUM errors за последние 10 минут."
+
+      - alert: ZFSPoolHighUsage
+        expr: 100 * (1 - node_filesystem_avail_bytes{fstype="zfs"} / node_filesystem_size_bytes{fstype="zfs"}) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ZFS filesystem заполнен более чем на 80% на {{ $labels.instance }}"
+          description: "{{ $labels.mountpoint }} используется более чем на 80%."

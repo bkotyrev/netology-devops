@@ -1,0 +1,81 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: telegram-warning
+  group_by: ['alertname', 'instance', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    - receiver: telegram-critical
+      matchers:
+        - severity="critical"
+
+    - receiver: telegram-warning
+      matchers:
+        - severity="warning"
+
+    - receiver: telegram-info
+      matchers:
+        - severity="info"
+
+receivers:
+  - name: telegram-info
+    telegram_configs:
+      - bot_token: REDACTED
+        chat_id: 0 # REDACTED
+        message_thread_id: 0 # REDACTED
+        send_resolved: true
+        parse_mode: HTML
+        http_config:
+          proxy_url: http://REDACTED_USER:REDACTED_PASSWORD@proxy.example.lan:3128
+        message: |-
+          {{ if eq .Status "firing" }}ℹ️ <b>INFO FIRING</b>{{ else }}✅ <b>INFO RESOLVED</b>{{ end }}
+          <b>Alerts:</b> {{ len .Alerts }}{{ range .Alerts }}
+          <b>{{ .Labels.alertname }}</b>{{ with .Labels.instance }}
+          <b>Instance:</b> {{ . }}{{ end }}{{ with .Labels.device }}
+          <b>Device:</b> {{ . }}{{ end }}{{ with .Labels.mountpoint }}
+          <b>Mount:</b> {{ . }}{{ end }}{{ with .Annotations.summary }}
+          <b>Summary:</b> {{ . }}{{ end }}{{ with .Annotations.description }}
+          <b>Description:</b> {{ . }}{{ end }}{{ end }}
+
+  - name: telegram-warning
+    telegram_configs:
+      - bot_token: REDACTED
+        chat_id: 0 # REDACTED
+        message_thread_id: 0 # REDACTED
+        send_resolved: true
+        parse_mode: HTML
+        http_config:
+          proxy_url: http://REDACTED_USER:REDACTED_PASSWORD@proxy.example.lan:3128
+        message: |-
+          {{ if eq .Status "firing" }}⚠️ <b>WARNING FIRING</b>{{ else }}✅ <b>WARNING RESOLVED</b>{{ end }}
+          <b>Alerts:</b> {{ len .Alerts }}{{ range .Alerts }}
+          <b>{{ .Labels.alertname }}</b>{{ with .Labels.instance }}
+          <b>Instance:</b> {{ . }}{{ end }}{{ with .Labels.device }}
+          <b>Device:</b> {{ . }}{{ end }}{{ with .Labels.mountpoint }}
+          <b>Mount:</b> {{ . }}{{ end }}{{ with .Annotations.summary }}
+          <b>Summary:</b> {{ . }}{{ end }}{{ with .Annotations.description }}
+          <b>Description:</b> {{ . }}{{ end }}{{ end }}
+
+  - name: telegram-critical
+    telegram_configs:
+      - bot_token: REDACTED
+        chat_id: 0 # REDACTED
+        message_thread_id: 0 # REDACTED
+        send_resolved: true
+        parse_mode: HTML
+        http_config:
+          proxy_url: http://REDACTED_USER:REDACTED_PASSWORD@proxy.example.lan:3128
+        message: |-
+          {{ if eq .Status "firing" }}🔥 <b>CRITICAL FIRING</b>{{ else }}✅ <b>CRITICAL RESOLVED</b>{{ end }}
+          <b>Alerts:</b> {{ len .Alerts }}{{ range .Alerts }}
+          <b>{{ .Labels.alertname }}</b>{{ with .Labels.instance }}
+          <b>Instance:</b> {{ . }}{{ end }}{{ with .Labels.device }}
+          <b>Device:</b> {{ . }}{{ end }}{{ with .Labels.mountpoint }}
+          <b>Mount:</b> {{ . }}{{ end }}{{ with .Annotations.summary }}
+          <b>Summary:</b> {{ . }}{{ end }}{{ with .Annotations.description }}
+          <b>Description:</b> {{ . }}{{ end }}{{ end }}
+

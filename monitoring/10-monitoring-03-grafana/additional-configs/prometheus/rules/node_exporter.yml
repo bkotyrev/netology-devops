@@ -1,0 +1,234 @@
+groups:
+  - name: node_exporter
+    rules:
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node exporter недоступен: {{ $labels.instance }}"
+          description: "Prometheus не может собрать метрики с {{ $labels.instance }} более 2 минут."
+
+      - alert: NodeHighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая загрузка CPU: {{ $labels.instance }}"
+          description: "CPU занят более чем на 85% в течение 10 минут. Текущее значение: {{ printf \"%.2f\" $value }}%."
+
+      - alert: NodeCriticalCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Критическая загрузка CPU: {{ $labels.instance }}"
+          description: "CPU занят более чем на 95% в течение 5 минут. Текущее значение: {{ printf \"%.2f\" $value }}%."
+
+      - alert: NodeHighLoadAverage
+        expr: node_load15{job="node"} / on(instance) count by(instance) (node_cpu_seconds_total{job="node",mode="idle"}) > 1.5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокий load average: {{ $labels.instance }}"
+          description: "Load15 выше 1.5 на одно CPU-ядро. Значение: {{ printf \"%.2f\" $value }}."
+
+      - alert: NodeOutOfMemory
+        expr: node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Мало RAM: {{ $labels.instance }}"
+          description: "Свободно менее 10% RAM. Значение: {{ printf \"%.2f\" $value }}."
+
+      - alert: NodeHighMemoryUsage
+        expr: node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 0.20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RAM почти закончилась: {{ $labels.instance }}"
+          description: "Свободно менее 20% RAM более 10 минут. Значение: {{ printf \"%.2f\" $value }}."
+
+      - alert: NodeHighSwapUsage
+        expr: (1 - (node_memory_SwapFree_bytes{job="node"} / node_memory_SwapTotal_bytes{job="node"})) > 0.80 and node_memory_SwapTotal_bytes{job="node"} > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокое использование swap: {{ $labels.instance }}"
+          description: "Swap занят более чем на 80%. Это часто признак нехватки RAM или утечки памяти."
+
+      - alert: NodeOutOfDiskSpace
+        expr: |
+          (
+            node_filesystem_avail_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"}
+            /
+            node_filesystem_size_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"}
+          ) < 0.10
+          and on(instance, device, mountpoint)
+          node_filesystem_readonly{job="node"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Заканчивается место на диске: {{ $labels.instance }} {{ $labels.mountpoint }}"
+          description: "На {{ $labels.mountpoint }} осталось менее 10% свободного места."
+
+      - alert: NodeDiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"}
+            /
+            node_filesystem_size_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"}
+          ) < 0.20
+          and on(instance, device, mountpoint)
+          node_filesystem_readonly{job="node"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Мало места на диске: {{ $labels.instance }} {{ $labels.mountpoint }}"
+          description: "На {{ $labels.mountpoint }} осталось менее 20% свободного места."
+
+      - alert: NodeDiskWillFillIn24Hours
+        expr: |
+          predict_linear(
+            node_filesystem_avail_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"}[6h],
+            86400
+          ) < 0
+          and
+          node_filesystem_avail_bytes{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$",mountpoint!~"^/(run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"} > 0
+          and on(instance, device, mountpoint)
+          node_filesystem_readonly{job="node"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Диск может заполниться за 24 часа: {{ $labels.instance }} {{ $labels.mountpoint }}"
+          description: "При текущем темпе записи файловая система {{ $labels.mountpoint }} может заполниться в течение суток."
+
+      - alert: NodeOutOfInodes
+        expr: |
+          (
+            node_filesystem_files_free{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$"}
+            /
+            node_filesystem_files{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*|cifs|nfs)$"}
+          ) < 0.10
+          and on(instance, device, mountpoint)
+          node_filesystem_readonly{job="node"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Заканчиваются inode: {{ $labels.instance }} {{ $labels.mountpoint }}"
+          description: "На {{ $labels.mountpoint }} осталось менее 10% inode."
+
+      - alert: NodeFilesystemReadOnly
+        expr: node_filesystem_readonly{job="node",fstype!~"^(tmpfs|devtmpfs|overlay|squashfs|fuse.*)$"} == 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Файловая система стала read-only: {{ $labels.instance }} {{ $labels.mountpoint }}"
+          description: "ФС {{ $labels.mountpoint }} на {{ $labels.instance }} смонтирована только для чтения."
+
+      - alert: NodeHighDiskIO
+        expr: rate(node_disk_io_time_seconds_total{job="node",device!~"^(loop|ram|fd).*"}[5m]) > 0.80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая утилизация диска: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Диск {{ $labels.device }} занят I/O более чем на 80%."
+
+      - alert: NodeDiskReadLatencyHigh
+        expr: |
+          rate(node_disk_read_time_seconds_total{job="node",device!~"^(loop|ram|fd).*"}[5m])
+          /
+          rate(node_disk_reads_completed_total{job="node",device!~"^(loop|ram|fd).*"}[5m])
+          > 0.1
+          and
+          rate(node_disk_reads_completed_total{job="node",device!~"^(loop|ram|fd).*"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая задержка чтения диска: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Средняя задержка чтения выше 100 ms."
+
+      - alert: NodeDiskWriteLatencyHigh
+        expr: |
+          rate(node_disk_write_time_seconds_total{job="node",device!~"^(loop|ram|fd).*"}[5m])
+          /
+          rate(node_disk_writes_completed_total{job="node",device!~"^(loop|ram|fd).*"}[5m])
+          > 0.1
+          and
+          rate(node_disk_writes_completed_total{job="node",device!~"^(loop|ram|fd).*"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая задержка записи диска: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Средняя задержка записи выше 100 ms."
+
+      - alert: NodeOOMKillDetected
+        expr: increase(node_vmstat_oom_kill{job="node"}[30m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "OOM kill на сервере: {{ $labels.instance }}"
+          description: "Ядро убило процесс из-за нехватки памяти за последние 30 минут."
+
+      - alert: NodeSystemdServiceFailed
+        expr: node_systemd_unit_state{job="node",state="failed"} == 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Systemd service failed: {{ $labels.instance }} {{ $labels.name }}"
+          description: "Сервис {{ $labels.name }} находится в состоянии failed."
+
+      - alert: NodeClockSkew
+        expr: |
+          (
+            node_timex_offset_seconds{job="node"} > 0.05
+            and deriv(node_timex_offset_seconds{job="node"}[5m]) >= 0
+          )
+          or
+          (
+            node_timex_offset_seconds{job="node"} < -0.05
+            and deriv(node_timex_offset_seconds{job="node"}[5m]) <= 0
+          )
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Проблема синхронизации времени: {{ $labels.instance }}"
+          description: "Clock skew более 50 ms. Проверь NTP/chrony/systemd-timesyncd."
+
+      - alert: NodeNetworkReceiveErrors
+        expr: |
+          rate(node_network_receive_errs_total{job="node",device!~"^(lo|veth.*|docker.*|br-.*)$"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ошибки RX на интерфейсе: {{ $labels.instance }} {{ $labels.device }}"
+          description: "На интерфейсе {{ $labels.device }} есть receive errors."
+
+      - alert: NodeNetworkTransmitErrors
+        expr: |
+          rate(node_network_transmit_errs_total{job="node",device!~"^(lo|veth.*|docker.*|br-.*)$"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ошибки TX на интерфейсе: {{ $labels.instance }} {{ $labels.device }}"
+          description: "На интерфейсе {{ $labels.device }} есть transmit errors."

@@ -1,0 +1,91 @@
+groups:
+  - name: smartctl_exporter
+    rules:
+      - alert: SmartctlExporterDown
+        expr: up{job="smartctl_exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "smartctl_exporter недоступен: {{ $labels.instance }}"
+          description: "Prometheus не может собрать SMART-метрики с {{ $labels.instance }} более 2 минут."
+
+      - alert: SMARTStatusFailed
+        expr: smartctl_device_smart_status{job="smartctl_exporter"} != 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SMART status failed: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Диск {{ $labels.device }} на {{ $labels.instance }} сообщает SMART failure."
+
+      - alert: SMARTCriticalWarning
+        expr: smartctl_device_critical_warning{job="smartctl_exporter"} > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SMART critical warning: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Контроллер диска {{ $labels.device }} сообщает critical warning."
+
+      - alert: SMARTMediaErrors
+        expr: smartctl_device_media_errors{job="smartctl_exporter"} > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SMART media errors: {{ $labels.instance }} {{ $labels.device }}"
+          description: "На диске {{ $labels.device }} обнаружены media errors. Диск под замену или минимум срочно проверить."
+
+      - alert: SMARTDeviceTemperatureWarning
+        expr: |
+          avg_over_time(smartctl_device_temperature{job="smartctl_exporter",temperature_type="current"}[5m]) > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая температура диска: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Температура диска {{ $labels.device }} выше 60°C более 5 минут. Значение: {{ printf \"%.1f\" $value }}°C."
+
+      - alert: SMARTDeviceTemperatureCritical
+        expr: |
+          max_over_time(smartctl_device_temperature{job="smartctl_exporter",temperature_type="current"}[5m]) > 70
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Критическая температура диска: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Температура диска {{ $labels.device }} выше 70°C. Значение: {{ printf \"%.1f\" $value }}°C."
+
+      - alert: SMARTDeviceTemperatureOverTripValue
+        expr: |
+          max_over_time(smartctl_device_temperature{job="smartctl_exporter",temperature_type="current"}[10m])
+          >= on(instance, device)
+          smartctl_device_temperature{job="smartctl_exporter",temperature_type="drive_trip"}
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Температура диска выше trip value: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Диск {{ $labels.device }} достиг или превысил свой drive_trip temperature."
+
+      - alert: SMARTWearoutIndicator
+        expr: |
+          smartctl_device_available_spare{job="smartctl_exporter"}
+          <
+          smartctl_device_available_spare_threshold{job="smartctl_exporter"}
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSD/NVMe изнашивается: {{ $labels.instance }} {{ $labels.device }}"
+          description: "Available spare ниже порога. Диск {{ $labels.device }} нужно планировать к замене."
+
+      - alert: SMARTDeviceMissing
+        expr: absent_over_time(smartctl_device_smart_status{job="smartctl_exporter"}[10m])
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Нет SMART-метрик"
+          description: "За последние 10 минут нет метрик smartctl_device_smart_status. Проверь smartctl_exporter, права доступа к дискам и smartmontools."
