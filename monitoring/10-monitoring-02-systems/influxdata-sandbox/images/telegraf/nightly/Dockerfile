@@ -1,0 +1,2 @@
+ARG TELEGRAF_TAG=latest
+FROM telegraf:$TELEGRAF_TAG

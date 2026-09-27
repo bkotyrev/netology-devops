@@ -1,0 +1,2 @@
+ARG KAPACITOR_TAG=latest
+FROM kapacitor:$KAPACITOR_TAG
