@@ -1,0 +1,19 @@
+{
+  "nodes": {
+    "9-2ihLNISte4hkjFwX29rg": {
+      "name": "es-hot",
+      "roles": [
+        "data_content",
+        "data_hot",
+        "master"
+      ]
+    },
+    "haWFR0xzQVedaKLQHwZkIA": {
+      "name": "es-warm",
+      "roles": [
+        "data_warm",
+        "master"
+      ]
+    }
+  }
+}

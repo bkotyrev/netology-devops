@@ -1,0 +1,8 @@
+logstash: logstash:5046...
+  connection...
+    parse host... OK
+    dns lookup... OK
+    addresses: 172.20.0.6
+    dial up... OK
+  TLS... WARN secure connection disabled
+  talk to server... OK

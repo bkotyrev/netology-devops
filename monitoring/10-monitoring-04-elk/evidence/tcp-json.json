@@ -1,0 +1,23 @@
+{
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "hits": [
+      {
+        "_source": {
+          "message": "ELK TCP JSON test",
+          "service": {
+            "name": "tcp-check"
+          },
+          "@version": "1",
+          "@timestamp": "2026-09-27T16:04:13.178223838Z",
+          "event": {
+            "dataset": "homework.tcp"
+          }
+        }
+      }
+    ]
+  }
+}

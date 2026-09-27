@@ -1,0 +1,18 @@
+Captured: 2026-09-27T16:08:02.361Z
+Minimum uptime: 320 seconds
+
+docker ps --filter label=com.docker.compose.project=elk-homework
+  --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}"
+
+CONTAINER ID   NAMES      IMAGE                    STATUS
+cdb2e7287174   logstash   logstash:8.7.0           Up 5 minutes
+7d65623da01f   es-hot     elasticsearch:8.7.0      Up 5 minutes
+3d42e0cc2a1f   es-warm    elasticsearch:8.7.0      Up 5 minutes
+32acc6928a82   kibana     kibana:8.7.0             Up 6 minutes
+f84786b9119e   filebeat   elastic/filebeat:8.7.0   Up 6 minutes
+
+es-hot     StartedAt=2026-09-27T16:02:41.558451433Z  RestartCount=0
+es-warm    StartedAt=2026-09-27T16:02:41.326176973Z  RestartCount=0
+logstash   StartedAt=2026-09-27T16:02:41.886244305Z  RestartCount=0
+kibana     StartedAt=2026-09-27T16:02:02.498192719Z  RestartCount=0
+filebeat   StartedAt=2026-09-27T16:01:48.254241952Z  RestartCount=0

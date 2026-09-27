@@ -1,0 +1,87 @@
+[
+  {
+    "name": "/es-hot",
+    "state": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 25001,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-27T16:02:41.558451433Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "restartCount": 0
+  },
+  {
+    "name": "/es-warm",
+    "state": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 24923,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-27T16:02:41.326176973Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "restartCount": 0
+  },
+  {
+    "name": "/logstash",
+    "state": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 25090,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-27T16:02:41.886244305Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "restartCount": 0
+  },
+  {
+    "name": "/kibana",
+    "state": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 23534,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-27T16:02:02.498192719Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "restartCount": 0
+  },
+  {
+    "name": "/filebeat",
+    "state": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 23424,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-27T16:01:48.254241952Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "restartCount": 0
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "version": {
+    "number": "8.7.0",
+    "build_hash": "05f12599523732051b84dde0b8d5610e0db2b06d",
+    "build_number": 61109,
+    "build_snapshot": false
+  },
+  "overall": {
+    "level": "available",
+    "summary": "All services are available"
+  }
+}
