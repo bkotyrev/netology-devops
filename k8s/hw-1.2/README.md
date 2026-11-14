@@ -3,7 +3,7 @@
 ## Задание 1
 
 - [Манифест создания pod](./hello-world.yaml)
-- ![task-01](./img/01.png)
+- ![task-01](img/01.png)
 
 ```shell
 # deploy pod
@@ -28,7 +28,7 @@ kubectl delete pod hello-world
 ## Задание 2
 
 - [Манифест создания сервиса](./netology-svc.yaml)
-- ![task-02](./img/02.png)
+- ![task-02](img/02.png)
 
 ```shell
 # deploy pod
