@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-after-service
+  labels:
+    app: nginx-after-service
+spec:
+  selector:
+    app: nginx-after-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
