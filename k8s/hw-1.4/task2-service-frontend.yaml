@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-nginx
+  labels:
+    app: frontend-nginx
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend-nginx
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http

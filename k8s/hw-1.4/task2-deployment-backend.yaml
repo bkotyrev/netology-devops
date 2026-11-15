@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-multitool
+  labels:
+    app: backend-multitool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-multitool
+  template:
+    metadata:
+      labels:
+        app: backend-multitool
+    spec:
+      containers:
+        - name: multitool
+          image: wbitt/network-multitool:latest
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              printf '%s\n' 'WBITT Network MultiTool backend' > /usr/share/nginx/html/index.html
+              printf '%s\n' 'WBITT Network MultiTool backend (/api)' > /usr/share/nginx/html/api
+              exec nginx -g 'daemon off;'
+          ports:
+            - name: http
+              containerPort: 80
