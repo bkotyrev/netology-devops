@@ -1,0 +1,71 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage # ДОПОЛНИТЕ: Имя StorageClass
+provisioner: kubernetes.io/no-provisioner # ИНФОРМАЦИЯ: Нет автоматического развёртывания
+volumeBindingMode: WaitForFirstConsumer
+---
+# При no-provisioner PV нужно создать вручную: StorageClass не создаёт его сам.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-exchange-sc-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /tmp/k8s-hw-2.1/sc-data
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-exchange-sc-pvc # ДОПОЛНИТЕ: Имя PVC
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # ДОПОЛНИТЕ: Какой объем хранилища вы хотите передать в контейнер. Должно быть меньше или равно параметру storage из PV
+  storageClassName: local-storage # ДОПОЛНИТЕ: Имя StorageClass. Должно совпадать с объявленным ранее
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange-sc
+spec:
+  replicas: 1 # ЗАДАНИЕ: Укажите количество реплик
+  selector:
+    matchLabels:
+      app: data-exchange-sc # ДОПОЛНИТЕ: Метка для селектора
+  template:
+    metadata:
+      labels:
+        app: data-exchange-sc # ПОВТОРИТЕ: Метка из selector.matchLabels
+    spec:
+      containers:
+      - name: writer # ДОПОЛНИТЕ: Имя первого контейнера
+        image: busybox:1.36
+        command: ["/bin/sh", "-c"]
+        # В исходном шаблоне комментарий на следующей строке ошибочен: writer записывает файл.
+        args: ['while true; do echo "$(date)" >> /shared/data.txt; sleep 5; done'] # КЛЮЧЕВОЕ: Команда для чтения данных из файла, расположенного в директории, указанной в volumeMounts контейнера
+        volumeMounts:
+        - name: storage # ДОПОЛНИТЕ: Имя монтируемого раздела. Должно совпадать с именем хранилища, объявленного на уровне пода
+          mountPath: /shared # КЛЮЧЕВОЕ: Путь монтирования хранилища внутри контейнера 1
+      - name: reader # ДОПОЛНИТЕ: Имя второго контейнера
+        image: wbitt/network-multitool:latest
+        command: ["/bin/sh", "-c"]
+        args: ['touch /shared/data.txt; exec tail -f /shared/data.txt'] # КЛЮЧЕВОЕ: Команда для чтения данных из файла, расположенного в директории, указанной в volumeMounts контейнера
+        volumeMounts:
+        - name: storage # ДОПОЛНИТЕ: Имя монтируемого раздела. Должно совпадать с именем хранилища, объявленного на уровне пода
+          mountPath: /shared # КЛЮЧЕВОЕ: Путь монтирования хранилища внутри контейнера 2
+      volumes:
+      - name: storage # ДОПОЛНИТЕ: Имя монтируемого раздела хранилища
+        persistentVolumeClaim:
+          claimName: data-exchange-sc-pvc # КЛЮЧЕВОЕ: Совпадает с именем PVC объявленного ранее
